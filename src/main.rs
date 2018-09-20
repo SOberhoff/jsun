@@ -4,21 +4,29 @@ use json::JsonValue;
 use std::io::Read;
 
 fn main() {
-    match json::parse(get_input().as_str()) {
-        Ok(val) => println!("{}", unquote(val).to_string()),
-        Err(_) => println!("That's not even JSON!")
+    let parse = |input: String|
+        json::parse(input.as_str()).map_err(|e| format!("error: invalid JSON passed to jsun\n{}", e));
+
+    match get_input().and_then(parse).map(unquote) {
+        Ok(json_value) => print!("{}", json_value.pretty(2)),
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1)
+        }
     }
 }
 
-/// get the first os arg if there is one, otherwise consume all of stdin
-fn get_input() -> String {
+/// get the first os arg if there is one, otherwise consume stdin
+fn get_input() -> Result<String, String> {
     let mut os_args: Vec<String> = std::env::args().collect();
-    if os_args.len() > 1 {
-        return os_args.remove(1);
-    } else {
-        let mut buffer = std::string::String::new();
-        std::io::stdin().read_to_string(&mut buffer).unwrap();
-        return buffer;
+    match os_args.len() - 1 {
+        0 => {
+            let mut buf = std::string::String::new();
+            std::io::stdin().read_to_string(&mut buf).unwrap();
+            Ok(buf)
+        }
+        1 => Ok(os_args.remove(1)),
+        n => Err(format!("error: too many arguments ({}) passed to jsun", n)),
     }
 }
 
