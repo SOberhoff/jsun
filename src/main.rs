@@ -11,7 +11,7 @@ fn main() {
 }
 
 /// get the first os arg if there is one, otherwise consume all of stdin
-fn get_input<'a>() -> String {
+fn get_input() -> String {
     let mut os_args: Vec<String> = std::env::args().collect();
     if os_args.len() > 1 {
         return os_args.remove(1);
@@ -29,6 +29,7 @@ fn unquote(json_value: JsonValue) -> JsonValue {
         JsonValue::Object(json_object) => {
             let mut new_object = json::JsonValue::new_object();
             for (key, val) in json_object.iter() {
+                // I haven't figured out how to take ownership of the object entries, so we have to clone :(
                 new_object[key] = unquote(val.clone())
             }
             new_object
