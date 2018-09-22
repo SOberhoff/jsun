@@ -18,14 +18,13 @@ fn main() {
 
 /// get the first os arg if there is one, otherwise consume stdin
 fn get_input() -> Result<String, String> {
-    let mut os_args: Vec<String> = std::env::args().collect();
-    match os_args.len() - 1 {
-        0 => {
-            let mut buf = std::string::String::new();
-            std::io::stdin().read_to_string(&mut buf).unwrap();
-            Ok(buf)
-        }
-        1 => Ok(os_args.remove(1)),
+    let mut stdin_buf = std::string::String::new();
+    std::io::stdin().read_to_string(&mut stdin_buf).unwrap();
+
+    match std::env::args().len() - 1 {
+        0 => Ok(stdin_buf),
+        1 if stdin_buf.is_empty() => Ok(std::env::args().nth(1).unwrap()),
+        1 => Err(String::from("error: both an argument and stdin input were passed to jsun")),
         n => Err(format!("error: too many arguments ({}) passed to jsun", n)),
     }
 }
